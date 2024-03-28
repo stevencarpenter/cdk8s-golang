@@ -1,0 +1,414 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment-cdk8s-plus
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 2
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: nginx-cdk8s-plus-deployment-c84b388e
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        cdk8s.io/metadata.addr: nginx-cdk8s-plus-deployment-c84b388e
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - image: nginx
+          imagePullPolicy: Always
+          name: nginx-container
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2048Mi
+            requests:
+              cpu: 1000m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          startupProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 80
+        - args:
+            - -text
+            - hello
+          image: hashicorp/http-echo
+          imagePullPolicy: Always
+          name: hashicorp-http-echo
+          ports:
+            - containerPort: 6789
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2048Mi
+            requests:
+              cpu: 1000m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          startupProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 6789
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroupChangePolicy: Always
+        runAsNonRoot: true
+      setHostnameAsFQDN: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-container-service
+spec:
+  externalIPs: []
+  ports:
+    - port: 9090
+      targetPort: 80
+  selector:
+    cdk8s.io/metadata.addr: nginx-cdk8s-plus-deployment-c84b388e
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hashicorp-http-echo-service
+spec:
+  externalIPs: []
+  ports:
+    - port: 6789
+      targetPort: 6789
+  selector:
+    cdk8s.io/metadata.addr: nginx-cdk8s-plus-deployment-c84b388e
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-cdk8s-plus-ingress-c818e47c
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: nginx-cdk8s-plus-root-service-c8e6a390
+                port:
+                  number: 6789
+            path: /
+            pathType: Prefix
+          - backend:
+              service:
+                name: nginx-cdk8s-plus-foo-service-c83e7667
+                port:
+                  number: 6789
+            path: /foo
+            pathType: Prefix
+          - backend:
+              service:
+                name: nginx-cdk8s-plus-pubg-leaderboard-service-c80f595a
+                port:
+                  number: 6789
+            path: /pubg/leaderboard/
+            pathType: Prefix
+    - host: sjcarpenter.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: nginx-cdk8s-plus-scjarpenter-service-c8636f3d
+                port:
+                  number: 6789
+            path: /
+            pathType: Prefix
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-cdk8s-plus-root-c8652978
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 2
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: nginx-cdk8s-plus-root-c83ce93f
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        cdk8s.io/metadata.addr: nginx-cdk8s-plus-root-c83ce93f
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - args:
+            - -text
+            - root
+          image: hashicorp/http-echo
+          imagePullPolicy: Always
+          name: main
+          ports:
+            - containerPort: 6789
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2048Mi
+            requests:
+              cpu: 1000m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          startupProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 6789
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroupChangePolicy: Always
+        runAsNonRoot: true
+      setHostnameAsFQDN: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-cdk8s-plus-root-service-c8e6a390
+spec:
+  externalIPs: []
+  ports:
+    - port: 6789
+  selector:
+    cdk8s.io/metadata.addr: nginx-cdk8s-plus-root-c83ce93f
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-cdk8s-plus-foo-c8ae3c66
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 2
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: nginx-cdk8s-plus-foo-c805b320
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        cdk8s.io/metadata.addr: nginx-cdk8s-plus-foo-c805b320
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - args:
+            - -text
+            - foo
+          image: hashicorp/http-echo
+          imagePullPolicy: Always
+          name: main
+          ports:
+            - containerPort: 6789
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2048Mi
+            requests:
+              cpu: 1000m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          startupProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 6789
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroupChangePolicy: Always
+        runAsNonRoot: true
+      setHostnameAsFQDN: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-cdk8s-plus-foo-service-c83e7667
+spec:
+  externalIPs: []
+  ports:
+    - port: 6789
+  selector:
+    cdk8s.io/metadata.addr: nginx-cdk8s-plus-foo-c805b320
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-cdk8s-plus-pubg-leaderboard-c88d4d69
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 2
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: nginx-cdk8s-plus-pubg-leaderboard-c8c1e92a
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        cdk8s.io/metadata.addr: nginx-cdk8s-plus-pubg-leaderboard-c8c1e92a
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - args:
+            - -text
+            - pubg-leaderboard
+          image: hashicorp/http-echo
+          imagePullPolicy: Always
+          name: main
+          ports:
+            - containerPort: 6789
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2048Mi
+            requests:
+              cpu: 1000m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          startupProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 6789
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroupChangePolicy: Always
+        runAsNonRoot: true
+      setHostnameAsFQDN: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-cdk8s-plus-pubg-leaderboard-service-c80f595a
+spec:
+  externalIPs: []
+  ports:
+    - port: 6789
+  selector:
+    cdk8s.io/metadata.addr: nginx-cdk8s-plus-pubg-leaderboard-c8c1e92a
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-cdk8s-plus-scjarpenter-c8efeee5
+spec:
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  replicas: 2
+  selector:
+    matchLabels:
+      cdk8s.io/metadata.addr: nginx-cdk8s-plus-scjarpenter-c8d9e506
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        cdk8s.io/metadata.addr: nginx-cdk8s-plus-scjarpenter-c8d9e506
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - args:
+            - -text
+            - scjarpenter
+          image: hashicorp/http-echo
+          imagePullPolicy: Always
+          name: main
+          ports:
+            - containerPort: 6789
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2048Mi
+            requests:
+              cpu: 1000m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          startupProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 6789
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      securityContext:
+        fsGroupChangePolicy: Always
+        runAsNonRoot: true
+      setHostnameAsFQDN: false
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-cdk8s-plus-scjarpenter-service-c8636f3d
+spec:
+  externalIPs: []
+  ports:
+    - port: 6789
+  selector:
+    cdk8s.io/metadata.addr: nginx-cdk8s-plus-scjarpenter-c8d9e506
+  type: ClusterIP
