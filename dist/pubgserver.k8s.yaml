@@ -25,8 +25,8 @@ spec:
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
-            initialDelaySeconds: 60
-            periodSeconds: 30
+            initialDelaySeconds: 10
+            periodSeconds: 5
             tcpSocket:
               port: 8090
           name: pubgserver
@@ -34,8 +34,8 @@ spec:
             - containerPort: 8090
           readinessProbe:
             failureThreshold: 3
-            initialDelaySeconds: 60
-            periodSeconds: 30
+            initialDelaySeconds: 10
+            periodSeconds: 5
             tcpSocket:
               port: 8090
           resources:
@@ -52,8 +52,8 @@ spec:
             runAsNonRoot: false
           startupProbe:
             failureThreshold: 3
-            initialDelaySeconds: 60
-            periodSeconds: 30
+            initialDelaySeconds: 10
+            periodSeconds: 5
             tcpSocket:
               port: 8090
       dnsPolicy: ClusterFirst

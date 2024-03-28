@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pubg
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            cdk8s.io/metadata.addr: pubg-c8381a73
+        spec:
+          automountServiceAccountToken: false
+          containers:
+            - image: pubg:latest
+              imagePullPolicy: IfNotPresent
+              name: pubg
+              ports:
+                - containerPort: 8091
+              resources:
+                limits:
+                  cpu: 1500m
+                  memory: 2048Mi
+                requests:
+                  cpu: 1000m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                privileged: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: false
+              startupProbe:
+                failureThreshold: 3
+                tcpSocket:
+                  port: 8091
+          dnsPolicy: ClusterFirst
+          hostNetwork: false
+          restartPolicy: Never
+          securityContext:
+            fsGroupChangePolicy: Always
+            runAsNonRoot: true
+          setHostnameAsFQDN: false
+          terminationGracePeriodSeconds: 30
+  schedule: "*/5 * * * *"
+  startingDeadlineSeconds: 10
+  successfulJobsHistoryLimit: 3
+  suspend: false

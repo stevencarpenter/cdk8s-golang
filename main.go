@@ -5,13 +5,10 @@ import (
 	"github.com/aws/jsii-runtime-go"
 	"github.com/cdk8s-team/cdk8s-core-go/cdk8s/v2"
 	"github.com/cdk8s-team/cdk8s-plus-go/cdk8splus28/v2"
-	"sjcarpenter.com/cdk8s-golang/imports/k8s"
 )
 
-type CronJobOptions struct {
-	Schedule      string
-	Container     k8s.Container
-	RestartPolicy string
+type PubgCronChartProps struct {
+	cdk8s.ChartProps
 }
 
 type NginxChartProps struct {
@@ -75,10 +72,50 @@ func NewPubgServerChart(scope constructs.Construct, id string, props *NginxChart
 	return chart
 }
 
+func NewPubgCronChart(scope constructs.Construct, id string, props *PubgCronChartProps) cdk8s.Chart {
+	var cprops cdk8s.ChartProps
+	if props != nil {
+		cprops = props.ChartProps
+	}
+
+	var chart = cdk8s.NewChart(scope, &id, &cprops)
+
+	cdk8splus28.NewCronJob(chart, jsii.String(id), &cdk8splus28.CronJobProps{
+		Metadata: &cdk8s.ApiObjectMetadata{Name: jsii.String(id)},
+		Containers: &[]*cdk8splus28.ContainerProps{
+			{
+				Name:            jsii.String(id),
+				Image:           jsii.String("pubg:latest"),
+				ImagePullPolicy: cdk8splus28.ImagePullPolicy_IF_NOT_PRESENT,
+				PortNumber:      jsii.Number(8091),
+				//Liveness: cdk8splus28.Probe_FromTcpSocket(&cdk8splus28.TcpSocketProbeOptions{
+				//	InitialDelaySeconds: cdk8s.Duration_Seconds(jsii.Number(10)),
+				//	PeriodSeconds:       cdk8s.Duration_Seconds(jsii.Number(5)),
+				//}),
+				//Readiness: cdk8splus28.Probe_FromTcpSocket(&cdk8splus28.TcpSocketProbeOptions{
+				//	InitialDelaySeconds: cdk8s.Duration_Seconds(jsii.Number(10)),
+				//	PeriodSeconds:       cdk8s.Duration_Seconds(jsii.Number(5)),
+				//}),
+				//Startup: cdk8splus28.Probe_FromTcpSocket(&cdk8splus28.TcpSocketProbeOptions{
+				//	InitialDelaySeconds: cdk8s.Duration_Seconds(jsii.Number(10)),
+				//	PeriodSeconds:       cdk8s.Duration_Seconds(jsii.Number(5)),
+				//}),
+				SecurityContext: &cdk8splus28.ContainerSecurityContextProps{EnsureNonRoot: jsii.Bool(false)}, //Not sure why the container needs root
+			},
+		},
+		Schedule: cdk8s.Cron_Schedule(&cdk8s.CronOptions{
+			Minute: jsii.String("*/5"),
+		}),
+	})
+
+	return chart
+}
+
 func main() {
 	app := cdk8s.NewApp(nil)
 	Redis(app, "redis")
 	NewPubgServerChart(app, "pubgserver", nil)
+	NewPubgCronChart(app, "pubg", nil)
 
 	app.Synth()
 }
