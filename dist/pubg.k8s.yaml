@@ -14,7 +14,18 @@ spec:
         spec:
           automountServiceAccountToken: false
           containers:
-            - image: pubg:latest
+            - env:
+                - name: PUBG_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      key: pubg-api-token
+                      name: pubg-api-token
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: redis-pass
+                      name: redis-pass
+              image: pubg:latest
               imagePullPolicy: IfNotPresent
               name: pubg
               ports:

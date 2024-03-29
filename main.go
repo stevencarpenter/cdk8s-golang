@@ -80,6 +80,9 @@ func NewPubgCronChart(scope constructs.Construct, id string, props *PubgCronChar
 
 	var chart = cdk8s.NewChart(scope, &id, &cprops)
 
+	pubgSecret := cdk8splus28.Secret_FromSecretName(chart, jsii.String("pubg-api-token"), jsii.String("pubg-api-token"))
+	redisPassword := cdk8splus28.Secret_FromSecretName(chart, jsii.String("redis-pass"), jsii.String("redis-pass"))
+
 	cdk8splus28.NewCronJob(chart, jsii.String(id), &cdk8splus28.CronJobProps{
 		Metadata: &cdk8s.ApiObjectMetadata{Name: jsii.String(id)},
 		Containers: &[]*cdk8splus28.ContainerProps{
@@ -88,19 +91,11 @@ func NewPubgCronChart(scope constructs.Construct, id string, props *PubgCronChar
 				Image:           jsii.String("pubg:latest"),
 				ImagePullPolicy: cdk8splus28.ImagePullPolicy_IF_NOT_PRESENT,
 				PortNumber:      jsii.Number(8091),
-				//Liveness: cdk8splus28.Probe_FromTcpSocket(&cdk8splus28.TcpSocketProbeOptions{
-				//	InitialDelaySeconds: cdk8s.Duration_Seconds(jsii.Number(10)),
-				//	PeriodSeconds:       cdk8s.Duration_Seconds(jsii.Number(5)),
-				//}),
-				//Readiness: cdk8splus28.Probe_FromTcpSocket(&cdk8splus28.TcpSocketProbeOptions{
-				//	InitialDelaySeconds: cdk8s.Duration_Seconds(jsii.Number(10)),
-				//	PeriodSeconds:       cdk8s.Duration_Seconds(jsii.Number(5)),
-				//}),
-				//Startup: cdk8splus28.Probe_FromTcpSocket(&cdk8splus28.TcpSocketProbeOptions{
-				//	InitialDelaySeconds: cdk8s.Duration_Seconds(jsii.Number(10)),
-				//	PeriodSeconds:       cdk8s.Duration_Seconds(jsii.Number(5)),
-				//}),
 				SecurityContext: &cdk8splus28.ContainerSecurityContextProps{EnsureNonRoot: jsii.Bool(false)}, //Not sure why the container needs root
+				EnvVariables: &map[string]cdk8splus28.EnvValue{
+					"PUBG_TOKEN":     cdk8splus28.EnvValue_FromSecretValue(&cdk8splus28.SecretValue{Key: jsii.String("pubg-api-token"), Secret: pubgSecret}, nil),
+					"REDIS_PASSWORD": cdk8splus28.EnvValue_FromSecretValue(&cdk8splus28.SecretValue{Key: jsii.String("redis-pass"), Secret: redisPassword}, nil),
+				},
 			},
 		},
 		Schedule: cdk8s.Cron_Schedule(&cdk8s.CronOptions{
