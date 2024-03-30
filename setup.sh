@@ -10,9 +10,11 @@ minikube addons enable metrics-server
 helm install ingress-nginx ingress-nginx/ingress-nginx
 
 kubectl create secret generic pubg-api-token --from-literal=pubg-api-token=""
-kubectl create secret generic redis-pass --from-literal=redis-pass=""
+kubectl create secret generic redis-pass --from-literal=redis-pass="secret"
 
-minikube dashboard
+kubectl apply -f pubgsa.k8s.yaml
+
+#minikube dashboard
 minikube tunnel
 
 

@@ -52,9 +52,10 @@ spec:
           securityContext:
             fsGroupChangePolicy: Always
             runAsNonRoot: true
+          serviceAccountName: sa-pubg
           setHostnameAsFQDN: false
           terminationGracePeriodSeconds: 30
-  schedule: "*/5 * * * *"
+  schedule: 0 * * * *
   startingDeadlineSeconds: 10
   successfulJobsHistoryLimit: 3
   suspend: false

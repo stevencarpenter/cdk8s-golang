@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789:role/pubg-role" # I would create this role and oidc federation in terraform.
+  name: sa-pubg
+  namespace: default
+automountServiceAccountToken: false
